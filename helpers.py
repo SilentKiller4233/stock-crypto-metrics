@@ -7,6 +7,18 @@ def get_stock_info(ticker: str) -> dict:
     try:
         stock = yf.Ticker(ticker)
         info = stock.info
+        balance_sheet = stock.balance_sheet
+
+        equity = info.get("totalStockholderEquity")
+        assets = info.get("totalAssets")
+
+        # Fallback if missing from .info
+        if not equity and "Total Stockholder Equity" in balance_sheet.index:
+            equity = balance_sheet.loc["Total Stockholder Equity"][0]
+
+        if not assets and "Total Assets" in balance_sheet.index:
+            assets = balance_sheet.loc["Total Assets"][0]
+
         return {
             "name": info.get("shortName"),
             "price": info.get("currentPrice"),
@@ -16,14 +28,15 @@ def get_stock_info(ticker: str) -> dict:
             "dividend_yield": info.get("dividendYield"),
             "book_value": info.get("bookValue"),
             "net_income": info.get("netIncomeToCommon"),
-            "shareholder_equity": info.get("totalStockholderEquity"),
+            "shareholder_equity": equity,
             "total_liabilities": info.get("totalLiab"),
-            "total_assets": info.get("totalAssets"),
+            "total_assets": assets,
             "ps_ratio": info.get("priceToSalesTrailing12Months")
         }
     except Exception as e:
         print(f"Error fetching stock data: {e}")
         return {}
+
 
 # ------------------ CRYPTO FUNCTIONS ------------------
 
