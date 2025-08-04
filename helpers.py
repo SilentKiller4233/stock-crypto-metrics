@@ -9,15 +9,39 @@ def get_stock_info(ticker: str) -> dict:
         info = stock.info
         balance_sheet = stock.balance_sheet
 
+        # Try primary values from .info
         equity = info.get("totalStockholderEquity")
         assets = info.get("totalAssets")
+        liabilities = info.get("totalLiab")
 
-        # Fallback if missing from .info
-        if not equity and "Total Stockholder Equity" in balance_sheet.index:
-            equity = balance_sheet.loc["Total Stockholder Equity"][0]
+        # Fallback for equity
+        if not equity:
+            possible_equity_keys = [
+                "Total Stockholder Equity",
+                "Common Stock Equity",
+                "Total Equity Gross Minority Interest"
+            ]
+            for key in possible_equity_keys:
+                if key in balance_sheet.index:
+                    equity = balance_sheet.loc[key].sort_index(ascending=False).iloc[0]
+                    break
 
+        # Fallback for assets
         if not assets and "Total Assets" in balance_sheet.index:
-            assets = balance_sheet.loc["Total Assets"][0]
+            assets = balance_sheet.loc["Total Assets"].sort_index(ascending=False).iloc[0]
+
+        # Fallback for liabilities
+        if not liabilities:
+            possible_liability_keys = [
+                "Total Liab",
+                "Total Liabilities Net Minority Interest",
+                "Total Current Liabilities"
+            ]
+            for key in possible_liability_keys:
+                if key in balance_sheet.index:
+                    liabilities = balance_sheet.loc[key].sort_index(ascending=False).iloc[0]
+                    print(f"DEBUG — Using fallback liabilities from '{key}': {liabilities}")
+                    break
 
         return {
             "name": info.get("shortName"),
@@ -29,14 +53,14 @@ def get_stock_info(ticker: str) -> dict:
             "book_value": info.get("bookValue"),
             "net_income": info.get("netIncomeToCommon"),
             "shareholder_equity": equity,
-            "total_liabilities": info.get("totalLiab"),
+            "total_liabilities": liabilities,
             "total_assets": assets,
             "ps_ratio": info.get("priceToSalesTrailing12Months")
         }
+
     except Exception as e:
         print(f"Error fetching stock data: {e}")
         return {}
-
 
 # ------------------ CRYPTO FUNCTIONS ------------------
 
@@ -83,8 +107,6 @@ def calculate_debt_to_equity(total_liab, equity):
 
 def calculate_roa(net_income, total_assets):
     return safe_divide(net_income, total_assets)
-
-# P/S comes pre-calculated as info["priceToSalesTrailing12Months"]
 
 def calculate_token_value_per_supply(market_cap, supply):
     return safe_divide(market_cap, supply)
