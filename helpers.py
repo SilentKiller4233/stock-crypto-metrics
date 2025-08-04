@@ -17,6 +17,9 @@ def get_stock_info(ticker: str) -> dict:
             "book_value": info.get("bookValue"),
             "net_income": info.get("netIncomeToCommon"),
             "shareholder_equity": info.get("totalStockholderEquity"),
+            "total_liabilities": info.get("totalLiab"),
+            "total_assets": info.get("totalAssets"),
+            "ps_ratio": info.get("priceToSalesTrailing12Months")
         }
     except Exception as e:
         print(f"Error fetching stock data: {e}")
@@ -39,6 +42,7 @@ def get_crypto_info(coin_id: str) -> dict:
             "volume": market_data["total_volume"]["usd"],
             "circulating_supply": market_data["circulating_supply"],
             "max_supply": market_data.get("max_supply"),
+            "price_change_24h": market_data.get("price_change_percentage_24h")
         }
     except Exception as e:
         print(f"Error fetching crypto data: {e}")
@@ -61,13 +65,24 @@ def calculate_pb(price, book_value):
 def calculate_roe(net_income, equity):
     return safe_divide(net_income, equity)
 
+def calculate_debt_to_equity(total_liab, equity):
+    return safe_divide(total_liab, equity)
+
+def calculate_roa(net_income, total_assets):
+    return safe_divide(net_income, total_assets)
+
+# P/S comes pre-calculated as info["priceToSalesTrailing12Months"]
+
 def calculate_token_value_per_supply(market_cap, supply):
     return safe_divide(market_cap, supply)
 
 def calculate_token_inflation(circulating_supply, max_supply):
     return safe_divide(circulating_supply, max_supply)
 
-# ------------------ UTILITY FUNCTIONS ------------------
+def calculate_liquidity(volume, market_cap):
+    return safe_divide(volume, market_cap)
+
+# ------------------ UTILITY ------------------
 
 def format_currency(value):
     return f"${value:,.2f}" if isinstance(value, (int, float)) else "N/A"

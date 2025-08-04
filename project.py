@@ -86,25 +86,37 @@ def display_ratios_stock(data):
     pe = calculate_pe(data["price"], data["eps"])
     pb = calculate_pb(data["price"], data["book_value"])
     roe = calculate_roe(data["net_income"], data["shareholder_equity"])
+    de = calculate_debt_to_equity(data["total_liabilities"], data["shareholder_equity"])
+    roa = calculate_roa(data["net_income"], data["total_assets"])
+    ps = data.get("ps_ratio")
 
     print("\n📊 Financial Ratios (Stock):")
     table = [
         ["P/E Ratio", f"{pe:.2f}" if pe else "N/A"],
         ["P/B Ratio", f"{pb:.2f}" if pb else "N/A"],
         ["ROE", f"{roe*100:.2f}%" if roe else "N/A"],
+        ["D/E Ratio", f"{de:.2f}" if de else "N/A"],
+        ["ROA", f"{roa*100:.2f}%" if roa else "N/A"],
+        ["P/S Ratio", f"{ps:.2f}" if ps else "N/A"],
     ]
     print(tabulate(table, tablefmt="fancy_grid"))
+
 
 def display_ratios_crypto(data):
     token_value = calculate_token_value_per_supply(data["market_cap"], data["circulating_supply"])
     inflation = calculate_token_inflation(data["circulating_supply"], data["max_supply"])
+    liquidity = calculate_liquidity(data["volume"], data["market_cap"])
+    volatility_24h = data.get("price_change_24h")
 
     print("\n📊 Financial Ratios (Crypto):")
     table = [
         ["Market Cap / Circulating Supply", f"{token_value:.2f}" if token_value else "N/A"],
         ["Inflation (Current Supply / Max)", f"{inflation*100:.2f}%" if inflation else "N/A"],
+        ["Liquidity Ratio", f"{liquidity:.4f}" if liquidity else "N/A"],
+        ["24h Volatility", f"{volatility_24h:.2f}%" if volatility_24h else "N/A"],
     ]
     print(tabulate(table, tablefmt="fancy_grid"))
+
 
 if __name__ == "__main__":
     main()
