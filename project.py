@@ -2,7 +2,7 @@ from helpers import *
 from tabulate import tabulate
 
 def main():
-    print("\n🎯 Welcome to Finlytics CLI!")
+    print("\n🎯 Welcome to stock-crypto-metrics!")
     while True:
         print("\nMain Menu:")
         print("[1] Stock")
